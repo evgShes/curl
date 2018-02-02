@@ -123,8 +123,7 @@ class Curl
         }
         $this->setStatus(curl_getinfo($curl, CURLINFO_HTTP_CODE));
         curl_close($curl);
-        $response = $result;
-        if (json_decode($result, true)) $response = json_decode($result, true);
+        $response = json_decode($result, true);
         return $response;
     }
 
