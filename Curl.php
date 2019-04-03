@@ -6,7 +6,7 @@
  * Time: 18:52
  */
 
-namespace App\Modules;
+namespace App\Helpers;
 
 
 use Illuminate\Support\Facades\Log;
@@ -102,7 +102,10 @@ class Curl
     {
         $url = $this->url;
         $data = $this->data;
+        $data_json = json_encode($data, JSON_UNESCAPED_UNICODE);
         $curl = curl_init();
+        $httpheader = $this->httpheader;
+
 
         if ($this->getMethod() == 'get') {
             $data = urldecode(http_build_query($data));
@@ -111,14 +114,20 @@ class Curl
             curl_setopt($curl, CURLOPT_POST, true);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
         }
+        elseif ($this->getMethod() == 'postJson') {
+            curl_setopt($curl, CURLOPT_POST, true);
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $data_json);
+        }
+
         curl_setopt($curl, CURLOPT_URL, $url);
-        curl_setopt($curl, CURLOPT_HTTPHEADER, $this->httpheader);
+        curl_setopt($curl, CURLOPT_HTTPHEADER, $httpheader);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
 
         $result = curl_exec($curl);
 
-        if (curl_exec($curl) === false) {
+
+        if ($result === false) {
             Log::error('php_curl error', [curl_error($curl)]);
         }
         $this->setStatus(curl_getinfo($curl, CURLINFO_HTTP_CODE));
@@ -136,6 +145,12 @@ class Curl
     public function post()
     {
         $this->setMethod('post');
+        return $this->createCURL();
+    }
+
+    public function postJson()
+    {
+        $this->setMethod('postJson');
         return $this->createCURL();
     }
 
